@@ -1,6 +1,8 @@
 # GrosData
 Project BigData
 
+Groupe 6
+
 ### Authors
 Rémi Huguenot, Arnaud Guibert, Valentin Moreau
 
