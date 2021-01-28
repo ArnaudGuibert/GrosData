@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 import csv
 
+from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
@@ -22,17 +23,15 @@ with open('categories_string.csv', mode = 'r') as infile:
     classes = { int(rows[1]) : rows[0] for rows in reader }
 
 
-""" Group by categories """
-total = len(df_reindexed.index)
-grouped = df_reindexed.groupby(['category', 'gender'], as_index = False).count()
-grouped.rename(columns = { 'description' : 'count' }, inplace = True)
-
-
-""" Affichage données """
-def show_stuff(df, classes, grouped):
+def show_repartition(dataframe, classes):
+    # Group by categories
+    total = len(dataframe.index)
+    grouped = dataframe.groupby(['category', 'gender'], as_index = False).count()
+    grouped.rename(columns = { 'description' : 'count' }, inplace = True)
+    
     # first / last rows
-    header = df_reindexed.head(20)
-    footer = df_reindexed.tail(20)
+    header = dataframe.head(20)
+    footer = dataframe.tail(20)
 
     # print first and last lines
     print("Corpus\n")
@@ -71,17 +70,13 @@ def show_stuff(df, classes, grouped):
     plt.show()
 
 
-show_stuff(df_reindexed, classes, grouped)
+def tf_idf_machine_learning(dataframe):
+    # fonction pour le machine learning TF-IDF
+    raise NotImplementedError
 
 
-""" Vectorizer training """
-# vectorizer = TfidfVectorizer()
-# vectorizer.fit(corpus)
-# tf_Idf = vectorizer.transform(corpus)
+if __name__ == "__main__":
+    show_repartition(df_reindexed, classes)
 
 
-""" Convert the sparse output matrix to dense matrix """
-# print(tf_Idf.toarray())
-
-
-
+### FIN DE SCRIPT ###
