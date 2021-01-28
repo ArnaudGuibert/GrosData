@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import csv
 
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+from sklearn.svm import LinearSVC
+from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
@@ -28,7 +32,6 @@ def show_repartition(dataframe, classes):
     print(classes)
 
     # show graph result
-    print("\nRepartition")
     values = [ [ None for i in range(2)] for j in range(len(classes.keys())) ]
 
     for i, row in grouped.iterrows():
@@ -59,11 +62,28 @@ def tf_idf_machine_learning(dataframe):
     X = dataframe['description']
     y = dataframe['category']
 
-    # train / test / split data
+    # split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 42, test_size = 0.3)
 
-    # declare & train TF-IDF vectorizer
-    raise NotImplementedError
+    # TF-IDF vectorizer + LinearSVC
+    text_clf = Pipeline([
+        ('tfidf', TfidfVectorizer()),
+        ('clf', LinearSVC()),
+    ])
+    
+    text_clf.fit(X_train, y_train)
+
+    # make predictions on test data
+    predictions = text_clf.predict(X_test)
+
+    # print metrics n' stuff
+    print("\nAccuracy score: % s " % accuracy_score(y_test, predictions))
+    
+    print("\nConfusion matrix:\n")
+    print(confusion_matrix(y_test, predictions))
+    
+    print("\nClassification report:\n")
+    print(classification_report(y_test, predictions))
 
 
 if __name__ == "__main__":
@@ -82,6 +102,9 @@ if __name__ == "__main__":
     
     # show info on data repartition
     show_repartition(df_reindexed, classes)
+
+    # first TF-IDF model test
+    tf_idf_machine_learning(df_reindexed)
 
 
 ### FIN DE SCRIPT ###
