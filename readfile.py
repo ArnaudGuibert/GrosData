@@ -143,8 +143,6 @@ if __name__ == "__main__":
         reader = csv.reader(infile)
         classes = { int(rows[1]) : rows[0] for rows in reader }
 
-    df_reindexed = df_reindexed.head(1000)
-
     # show info on data repartition
     show_repartition(df_reindexed, classes)
 
