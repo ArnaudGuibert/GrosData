@@ -41,7 +41,7 @@ def pre_process_text(text, cachedStopWords, stemmer):
     return ' '.join(word_array)
 
 
-def show_repartition(title = 'Gender repartition by category', dataframe, classes):
+def show_repartition(dataframe, classes, title = 'Gender repartition by category'):
     # print title
     print(title + "\n")
 
@@ -70,7 +70,7 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
         print("End of pre processing\n")
 
     # show initial gender data repartition
-    show_repartition('Repartition of full set', dataframe, classes)
+    show_repartition(dataframe, classes, 'Repartition of full set')
 
     # fonction pour le machine learning TF-IDF
     Xd = dataframe['description']
@@ -83,7 +83,7 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
 
     # show gender data repartition on test values
     df_test_true = pd.DataFrame( { 'gender' : Xg_test, 'category' : y_test } )
-    show_repartition('True repartition of test set', df_test_true, classes)
+    show_repartition(df_test_true, classes, 'True repartition of test set')
 
     # TF-IDF vectorizer + LinearSVC
     modelSVC = Pipeline([
@@ -101,7 +101,7 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
     # show repartition for predicted test values
     df_test_predicted = pd.DataFrame(predictions, index = list(df_test_true.index), columns = ['category'])
     df_test_predicted['gender'] = df_test_true['gender']
-    show_repartition('Predicted repartition of test set', df_test_predicted, classes)
+    show_repartition(df_test_predicted, classes, 'Predicted repartition of test set')
     
     # print metrics 'n stuff
     print("\nAccuracy score: %s" % accuracy_score(y_test, predictions))
