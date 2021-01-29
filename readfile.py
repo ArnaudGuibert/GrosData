@@ -14,30 +14,42 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
+
+import swifter
 
 # A faire la premiere fois
 # nltk.download('punkt')
 # nltk.download('stopwords')
+# nltk.download('wordnet')
 
 
 def pre_processing(dataframe):
     # preprocessing
     cachedStopWords = stopwords.words("english") + [ "," , "." , "'" ]
-    stemmer = SnowballStemmer("english")
-    dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, cachedStopWords, stemmer))
+    lemmatizer = WordNetLemmatizer()
+    lemmatizer_tag_dict = {"J": wordnet.ADJ,
+                "N": wordnet.NOUN,
+                "V": wordnet.VERB,
+                "R": wordnet.ADV}
+    dataframe['description'] = dataframe['description'].swifter.apply(lambda x: pre_process_text(x, cachedStopWords, lemmatizer, lemmatizer_tag_dict))
 
-
-def pre_process_text(text, cachedStopWords, stemmer):
+def pre_process_text(text, cachedStopWords, lemmatizer, lemmatizer_tag_dict):
     # To lower case
     text_lower = text.lower()
     # Text to word array
     word_array = word_tokenize(text_lower)
-    # Remove stop words
-    word_array = [word for word in word_array if word not in cachedStopWords]
-    # Stemming
-    word_array = [stemmer.stem(word) for word in word_array]
+
+    word_array_proccessed = []
+    for word in word_array:
+        # Remove stop words
+        if(word not in cachedStopWords):
+            # Lemmatization
+            tag = nltk.pos_tag([word])[0][1][0].upper()
+            word_array_proccessed.append(lemmatizer.lemmatize(word, lemmatizer_tag_dict.get(tag, wordnet.NOUN)))
     # Word array to text
-    return ' '.join(word_array)
+    return ' '.join(word_array_proccessed)
 
 
 def show_repartition(dataframe, classes):
@@ -130,6 +142,8 @@ if __name__ == "__main__":
     with open('categories_string.csv', mode = 'r') as infile:
         reader = csv.reader(infile)
         classes = { int(rows[1]) : rows[0] for rows in reader }
+
+    df_reindexed = df_reindexed.head(1000)
 
     # show info on data repartition
     show_repartition(df_reindexed, classes)
