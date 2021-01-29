@@ -42,14 +42,6 @@ def pre_process_text(text, cachedStopWords, stemmer):
 
 
 def show_repartition(dataframe, classes, title):
-    # first / last rows
-    header = dataframe.head(5)
-
-    # print first and last lines
-    print("Corpus Header\n")
-    print(header)
-    print("")
-
     # Group by categories
     grouped = dataframe.groupby(['category', 'gender']).size().unstack('gender')
     data = grouped.rename(index = classes)
