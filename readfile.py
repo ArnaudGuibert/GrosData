@@ -22,7 +22,7 @@ from nltk.stem.snowball import SnowballStemmer
 
 def pre_processing(dataframe):
     # preprocessing
-    cachedStopWords = stopwords.words("english") + [ ",", "." , "'" ]
+    cachedStopWords = stopwords.words("english") + [ "," , "." , "'" ]
     stemmer = SnowballStemmer("english")
     dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, cachedStopWords, stemmer))
 
