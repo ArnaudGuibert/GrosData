@@ -11,12 +11,11 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
 
-# A faire la premiere fois
+# A faire (juste la première fois)
 # nltk.download('punkt')
 # nltk.download('stopwords')
 
@@ -29,14 +28,12 @@ def pre_processing(dataframe):
 
 
 def pre_process_text(text, cachedStopWords, stemmer):
-    # To lower case
-    text_lower = text.lower()
-    # Text to word array
-    word_array = word_tokenize(text_lower)
     # Remove stop words
-    word_array = [word for word in word_array if word not in cachedStopWords]
+    word_array = [ word for word in word_tokenize(text.lower()) if word not in cachedStopWords ]
+    
     # Stemming
-    word_array = [stemmer.stem(word) for word in word_array]
+    word_array = [ stemmer.stem(word) for word in word_array ]
+    
     # Word array to text
     return ' '.join(word_array)
 
@@ -77,7 +74,7 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
     Xg = dataframe['gender']
     y = dataframe['category']
     
-    # split data -- keeping the same random_state and test_size is mandatory for index matching
+    # split data -- keep the same random_state and test_size for index matching
     Xd_train, Xd_test, y_train, y_test = train_test_split(Xd, y, random_state = 42, test_size = 0.3)
     _ , Xg_test , _ , _ = train_test_split(Xg, y, random_state = 42, test_size = 0.3)
 
