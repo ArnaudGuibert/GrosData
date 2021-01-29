@@ -11,19 +11,21 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 import nltk
-#nltk.download('punkt')
 from nltk.corpus import stopwords
-#nltk.download('stopwords')
 from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
 
-def pre_processing(dataframe):    
-    cachedStopWords = stopwords.words("english") + [",",".","'"]
+# A faire la premiere fois
+# nltk.download('punkt')
+# nltk.download('stopwords')
+
+
+def pre_processing(dataframe):
+    # preprocessing
+    cachedStopWords = stopwords.words("english") + [ ",", "." , "'" ]
     stemmer = SnowballStemmer("english")
     dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, cachedStopWords, stemmer))
-    print()
-    print("AFTER PRE PROCESSING")
-    print(dataframe.head(5))
+
 
 def pre_process_text(text, cachedStopWords, stemmer):
     # To lower case
@@ -37,6 +39,7 @@ def pre_process_text(text, cachedStopWords, stemmer):
     # Word array to text
     return ' '.join(word_array)
 
+
 def show_repartition(dataframe, classes):
     # Group by categories
     total = len(dataframe.index)
@@ -44,18 +47,12 @@ def show_repartition(dataframe, classes):
     grouped.rename(columns = { 'description' : 'count' }, inplace = True)
     
     # first / last rows
-    header = dataframe.head(20)
-    footer = dataframe.tail(20)
+    header = dataframe.head(5)
 
     # print first and last lines
-    print("Corpus\n")
+    print("Corpus Header\n")
     print(header)
-    print("\n" + "....." + "\n")
-    print(footer)
-
-    # print dictionary of categories
-    print("\nCategories\n")
-    print(classes)
+    print("")
 
     # show graph result
     values = [ [ None for i in range(2)] for j in range(len(classes.keys())) ]
@@ -83,7 +80,13 @@ def show_repartition(dataframe, classes):
     plt.show()
 
 
-def tf_idf_machine_learning(dataframe):
+def tf_idf_machine_learning(dataframe, withPreProcessing = False):
+    # preprocessing
+    if withPreProcessing:
+        print("Start pre processing...")
+        pre_processing(dataframe)
+        print("End of pre processing\n")
+
     # fonction pour le machine learning TF-IDF
     X = dataframe['description']
     y = dataframe['category']
@@ -96,8 +99,10 @@ def tf_idf_machine_learning(dataframe):
         ('tfidf', TfidfVectorizer()),
         ('clf', LinearSVC()),
     ])
-    
+
+    print("Start of model fitting...")
     text_clf.fit(X_train, y_train)
+    print("End of model fitting\n")
 
     # make predictions on test data
     predictions = text_clf.predict(X_test)
@@ -129,11 +134,9 @@ if __name__ == "__main__":
     # show info on data repartition
     show_repartition(df_reindexed, classes)
 
-    # pre-processing
-    pre_processing(df_reindexed)
-
     # first TF-IDF model test
-    tf_idf_machine_learning(df_reindexed)
+    tf_idf_machine_learning(df_reindexed, True)
+
 
 
 ### FIN DE SCRIPT ###
