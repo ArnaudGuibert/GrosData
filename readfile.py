@@ -41,45 +41,49 @@ def pre_process_text(text, cachedStopWords, stemmer):
     return ' '.join(word_array)
 
 
-def show_repartition(dataframe, classes, title):
-    # Group by categories
-    grouped = dataframe.groupby(['category', 'gender']).size().unstack('gender')
-    data = grouped.rename(index = classes)
+def show_repartition(title = 'Gender repartition by category', dataframe, classes):
+    # print title
+    print(title + "\n")
 
-    # plot histogram
-    data.plot(kind = 'bar')
-    plt.title(title)
+    # Create dataframe grouped by category and gender
+    grouped = dataframe.groupby(['category', 'gender']).size().unstack('gender')
+    grouped['disparate_impact'] = grouped[['M', 'F']].max(axis='columns') / grouped[['M', 'F']].min(axis='columns')
+    grouped = grouped.rename(index = classes).sort_values('disparate_impact', ascending=False)
+
+    # Show dataframe
+    print(grouped)
+    print("")
+    
+    # [ OPTIONAL ] Show repartition graph
+    """
+    graph = grouped.drop('disparate_impact', axis = 1)
+    graph.plot(kind = 'bar')
     plt.show()
+    """
 
 
 def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
-    # show initial gender data repartition
-    show_repartition(dataframe, classes, 'Repartition of full set')
-
     # preprocessing
     if withPreProcessing:
         print("Start of pre processing...")
         pre_processing(dataframe)
         print("End of pre processing\n")
 
+    # show initial gender data repartition
+    show_repartition('Repartition of full set', dataframe, classes)
+
     # fonction pour le machine learning TF-IDF
-    X = dataframe['description']
-    X2 = dataframe['gender']
+    Xd = dataframe['description']
+    Xg = dataframe['gender']
     y = dataframe['category']
-
-    # split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 42, test_size = 0.3)
-    _ , X_gender_test , _ , _ = train_test_split(X2, y, random_state = 42, test_size = 0.3)
-
-    # create dataframe for test values
-    df_gender = pd.DataFrame(X_gender_test)
-    df_gender = df_gender.rename(columns = {0 : 'gender'})
-    df_category = pd.DataFrame(y_test)
-    df_category = df_category.rename(columns = {0 : 'category'})
-    df_all = pd.concat([df_category, df_gender], axis=1)
+    
+    # split data -- keeping the same random_state and test_size is mandatory for index matching
+    Xd_train, Xd_test, y_train, y_test = train_test_split(Xd, y, random_state = 42, test_size = 0.3)
+    _ , Xg_test , _ , _ = train_test_split(Xg, y, random_state = 42, test_size = 0.3)
 
     # show gender data repartition on test values
-    show_repartition(df_all, classes, 'Repartition of test set')
+    df_test_true = pd.DataFrame( { 'gender' : Xg_test, 'category' : y_test } )
+    show_repartition('True repartition of test set', df_test_true, classes)
 
     # TF-IDF vectorizer + LinearSVC
     modelSVC = Pipeline([
@@ -88,13 +92,18 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
     ])
 
     print("Start of model fitting...")
-    modelSVC.fit(X_train, y_train)
+    modelSVC.fit(Xd_train, y_train)
     print("End of model fitting\n")
 
     # make predictions on test data
-    predictions = modelSVC.predict(X_test)
+    predictions = modelSVC.predict(Xd_test)
+
+    # show repartition for predicted test values
+    df_test_predicted = pd.DataFrame(predictions, index = list(df_test_true.index), columns = ['category'])
+    df_test_predicted['gender'] = df_test_true['gender']
+    show_repartition('Predicted repartition of test set', df_test_predicted, classes)
     
-    # print metrics n' stuff
+    # print metrics 'n stuff
     print("\nAccuracy score: %s" % accuracy_score(y_test, predictions))
     
     print("\nConfusion matrix:\n")
