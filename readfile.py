@@ -10,6 +10,32 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+import nltk
+#nltk.download('punkt')
+from nltk.corpus import stopwords
+#nltk.download('stopwords')
+from nltk.tokenize import word_tokenize
+from nltk.stem.snowball import SnowballStemmer
+
+def pre_processing(dataframe):    
+    cachedStopWords = stopwords.words("english") + [",",".","'"]
+    stemmer = SnowballStemmer("english")
+    dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, cachedStopWords, stemmer))
+    print()
+    print("AFTER PRE PROCESSING")
+    print(dataframe.head(5))
+
+def pre_process_text(text, cachedStopWords, stemmer):
+    # To lower case
+    text_lower = text.lower()
+    # Text to word array
+    word_array = word_tokenize(text_lower)
+    # Remove stop words
+    word_array = [word for word in word_array if word not in cachedStopWords]
+    # Stemming
+    word_array = [stemmer.stem(word) for word in word_array]
+    # Word array to text
+    return ' '.join(word_array)
 
 def show_repartition(dataframe, classes):
     # Group by categories
@@ -99,9 +125,12 @@ if __name__ == "__main__":
     with open('categories_string.csv', mode = 'r') as infile:
         reader = csv.reader(infile)
         classes = { int(rows[1]) : rows[0] for rows in reader }
-    
+
     # show info on data repartition
     show_repartition(df_reindexed, classes)
+
+    # pre-processing
+    pre_processing(df_reindexed)
 
     # first TF-IDF model test
     tf_idf_machine_learning(df_reindexed)
