@@ -11,6 +11,8 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from joblib import dump, load
+
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
@@ -127,6 +129,11 @@ if __name__ == "__main__":
     # show info on data repartition
     tf_idf_machine_learning(df_reindexed, classes, False)
 
+
+"""
+dump(clf, 'filename.joblib')
+clf = load('filename.joblib')
+"""
 
 
 ### FIN DE SCRIPT ###
