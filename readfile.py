@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import time
 import csv
 
 from sklearn.model_selection import train_test_split
@@ -10,100 +11,99 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-import nltk
-#nltk.download('punkt')
+from joblib import dump, load
+
 from nltk.corpus import stopwords
-#nltk.download('stopwords')
 from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
 
-def pre_processing(dataframe):    
-    cachedStopWords = stopwords.words("english") + [",",".","'"]
+# A faire (juste la première fois)
+# nltk.download('punkt')
+# nltk.download('stopwords')
+
+
+def pre_processing(dataframe):
+    # preprocessing
+    cachedStopWords = stopwords.words("english") + [ "," , "." , "'" ]
     stemmer = SnowballStemmer("english")
     dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, cachedStopWords, stemmer))
-    print()
-    print("AFTER PRE PROCESSING")
-    print(dataframe.head(5))
+
 
 def pre_process_text(text, cachedStopWords, stemmer):
-    # To lower case
-    text_lower = text.lower()
-    # Text to word array
-    word_array = word_tokenize(text_lower)
     # Remove stop words
-    word_array = [word for word in word_array if word not in cachedStopWords]
+    word_array = [ word for word in word_tokenize(text.lower()) if word not in cachedStopWords ]
+    
     # Stemming
-    word_array = [stemmer.stem(word) for word in word_array]
+    word_array = [ stemmer.stem(word) for word in word_array ]
+    
     # Word array to text
     return ' '.join(word_array)
 
-def show_repartition(dataframe, classes):
-    # Group by categories
-    total = len(dataframe.index)
-    grouped = dataframe.groupby(['category', 'gender'], as_index = False).count()
-    grouped.rename(columns = { 'description' : 'count' }, inplace = True)
+
+def show_repartition(dataframe, classes, title = 'Gender repartition by category'):
+    # print title
+    print(title + "\n")
+
+    # Create dataframe grouped by category and gender
+    grouped = dataframe.groupby(['category', 'gender']).size().unstack('gender')
+    grouped['disparate_impact'] = grouped[['M', 'F']].max(axis='columns') / grouped[['M', 'F']].min(axis='columns')
+    grouped = grouped.rename(index = classes).sort_values('disparate_impact', ascending=False)
+
+    # Show dataframe
+    print(grouped)
+    print("")
     
-    # first / last rows
-    header = dataframe.head(20)
-    footer = dataframe.tail(20)
-
-    # print first and last lines
-    print("Corpus\n")
-    print(header)
-    print("\n" + "....." + "\n")
-    print(footer)
-
-    # print dictionary of categories
-    print("\nCategories\n")
-    print(classes)
-
-    # show graph result
-    values = [ [ None for i in range(2)] for j in range(len(classes.keys())) ]
-
-    for i, row in grouped.iterrows():
-        # nb from this groupby
-        count = row['count']
-
-        # category id
-        category = row['category']
-
-        # gender
-        if row['gender'] == "M":
-            gender = 0 # man
-        else:
-            gender = 1 # woman
-
-        # update values
-        values[category][gender] = count
-
-    # plot histogram
-    index = classes.values()
-    data = pd.DataFrame(values, index = index, columns = ["M", "F"])
-    data.plot(kind = 'bar')
+    # [ OPTIONAL ] Show repartition graph
+    """
+    graph = grouped.drop('disparate_impact', axis = 1)
+    graph.plot(kind = 'bar')
     plt.show()
+    """
 
 
-def tf_idf_machine_learning(dataframe):
+def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
+    # preprocessing
+    if withPreProcessing:
+        print("Start of pre processing...")
+        pre_processing(dataframe)
+        print("End of pre processing\n")
+
+    # show initial gender data repartition
+    show_repartition(dataframe, classes, 'Repartition of full set')
+
     # fonction pour le machine learning TF-IDF
-    X = dataframe['description']
+    Xd = dataframe['description']
+    Xg = dataframe['gender']
     y = dataframe['category']
+    
+    # split data -- keep the same random_state and test_size for index matching
+    Xd_train, Xd_test, y_train, y_test = train_test_split(Xd, y, random_state = 42, test_size = 0.3)
+    _ , Xg_test , _ , _ = train_test_split(Xg, y, random_state = 42, test_size = 0.3)
 
-    # split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 42, test_size = 0.3)
+    # show gender data repartition on test values
+    df_test_true = pd.DataFrame( { 'gender' : Xg_test, 'category' : y_test } )
+    show_repartition(df_test_true, classes, 'True repartition of test set')
 
     # TF-IDF vectorizer + LinearSVC
-    text_clf = Pipeline([
+    modelSVC = Pipeline([
         ('tfidf', TfidfVectorizer()),
         ('clf', LinearSVC()),
     ])
-    
-    text_clf.fit(X_train, y_train)
+
+    print("Start of model fitting...")
+    modelSVC.fit(Xd_train, y_train)
+    print("End of model fitting\n")
 
     # make predictions on test data
-    predictions = text_clf.predict(X_test)
+    predictions = modelSVC.predict(Xd_test)
 
-    # print metrics n' stuff
-    print("\nAccuracy score: % s " % accuracy_score(y_test, predictions))
+    # show repartition for predicted test values
+    df_test_predicted = pd.DataFrame(predictions, index = list(df_test_true.index), columns = ['category'])
+    df_test_predicted['gender'] = df_test_true['gender']
+    show_repartition(df_test_predicted, classes, 'Predicted repartition of test set')
+    
+    # print metrics 'n stuff
+    print("\nAccuracy score: %s" % accuracy_score(y_test, predictions))
     
     print("\nConfusion matrix:\n")
     print(confusion_matrix(y_test, predictions))
@@ -127,13 +127,13 @@ if __name__ == "__main__":
         classes = { int(rows[1]) : rows[0] for rows in reader }
 
     # show info on data repartition
-    show_repartition(df_reindexed, classes)
+    tf_idf_machine_learning(df_reindexed, classes, False)
 
-    # pre-processing
-    pre_processing(df_reindexed)
 
-    # first TF-IDF model test
-    tf_idf_machine_learning(df_reindexed)
+"""
+dump(clf, 'filename.joblib')
+clf = load('filename.joblib')
+"""
 
 
 ### FIN DE SCRIPT ###
