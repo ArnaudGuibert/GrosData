@@ -25,7 +25,7 @@ from joblib import dump, load
 def pre_processing(dataframe):
     # preprocessing
     stemmer = WordNetLemmatizer()
-    dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, stemmer))
+    dataframe['description'] = dataframe['description'].apply(lambda x: pre_processing_text(x, stemmer))
 
 
 def pre_processing_text(document, stemmer):
@@ -55,7 +55,7 @@ def pre_processing_text(document, stemmer):
     return ' '.join(document)
 
 
-def show_repartition(dataframe, classes):
+def show_repartition(dataframe, classes, title):
     # print title
     print(title + "\n")
 
@@ -101,7 +101,7 @@ def build_tf_idf_save(dataframe, classes, ngram, withPreProcessing = False):
 
     # TF-IDF vectorizer + LinearSVC
     modelSVC = Pipeline([
-        ('tfidf', TfidfVectorizer(stop_words = stopwords.words('english'), ngram_range = (ngram, ngram)), ('clf', LinearSVC()),
+        ('tfidf', TfidfVectorizer(stop_words = stopwords.words('english'), ngram_range = (ngram, ngram))), ('clf', LinearSVC()),
     ])
 
     print("Start of model fitting...")
