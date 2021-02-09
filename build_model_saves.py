@@ -22,31 +22,13 @@ from sklearn.svm import LinearSVC
 from joblib import dump, load
 
 
-def pre_processing_old(dataframe):
-    # preprocessing
-    cachedStopWords = stopwords.words("english") + [ "," , "." , "'" ]
-    stemmer = SnowballStemmer("english")
-    dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text_old(x, cachedStopWords, stemmer))
-
-
-def pre_process_text_old(text, cachedStopWords, stemmer):
-    # Remove stop words
-    word_array = [ word for word in word_tokenize(text.lower()) if word not in cachedStopWords ]
-    
-    # Stemming
-    word_array = [ stemmer.stem(word) for word in word_array ]
-    
-    # Word array to text
-    return ' '.join(word_array)
-
-
 def pre_processing(dataframe):
     # preprocessing
     stemmer = WordNetLemmatizer()
     dataframe['description'] = dataframe['description'].apply(lambda x: pre_process_text(x, stemmer))
 
 
-def pre_process_text(document, stemmer):
+def pre_processing_text(document, stemmer):
     # Remove all the special characters
     document = re.sub(r'\W', ' ', document)
     
@@ -73,7 +55,7 @@ def pre_process_text(document, stemmer):
     return ' '.join(document)
 
 
-def show_repartition(dataframe, classes, title = 'Gender repartition by category'):
+def show_repartition(dataframe, classes):
     # print title
     print(title + "\n")
 
@@ -86,15 +68,15 @@ def show_repartition(dataframe, classes, title = 'Gender repartition by category
     print(grouped)
     print("")
     
-    # [ OPTIONAL ] Show repartition graph
     """
+    # [ OPTIONAL ] Show repartition graph
     graph = grouped.drop('disparate_impact', axis = 1)
     graph.plot(kind = 'bar')
     plt.show()
     """
 
 
-def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
+def build_tf_idf_save(dataframe, classes, ngram, withPreProcessing = False):
     # preprocessing
     if withPreProcessing:
         print("Start of pre processing...")
@@ -119,8 +101,7 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
 
     # TF-IDF vectorizer + LinearSVC
     modelSVC = Pipeline([
-        ('tfidf', TfidfVectorizer(stop_words = stopwords.words('english'))),
-        ('clf', LinearSVC()),
+        ('tfidf', TfidfVectorizer(stop_words = stopwords.words('english'), ngram_range = (ngram, ngram)), ('clf', LinearSVC()),
     ])
 
     print("Start of model fitting...")
@@ -129,17 +110,19 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
 
     # name of config model file
     if withPreProcessing:
-        name = 'clf_tfidf_prepro.joblib'
+        if ngram == 1:
+            name = "models/tfidf_save_monogram_prepro.joblib"
+        else:
+            name = "models/tfidf_save_bigram_prepro.joblib"
     else:
-        name = 'clf_tfidf.joblib'
+        if ngram == 1:
+            name = "models/tfidf_save_monogram.joblib"
+        else:
+            name = "models/tfidf_save_bigram.joblib"
 
     # save model
     print("Saving model...")
     dump(modelSVC, name)
-
-    # load model
-    print("Loading model...")
-    modelSVC = load(name)
 
     # make predictions on test data
     predictions = modelSVC.predict(Xd_test)
@@ -160,6 +143,11 @@ def tf_idf_machine_learning(dataframe, classes, withPreProcessing = False):
 
 
 if __name__ == "__main__":
+    # get category names as dictionary
+    with open('categories_string.csv', mode = 'r') as infile:
+        reader = csv.reader(infile)
+        classes = { int(rows[1]) : rows[0] for rows in reader }
+
     # get text corpus and merge dataframes
     df = pd.read_json('data.json')
     df_reindexed = df.set_index('Id')
@@ -167,13 +155,10 @@ if __name__ == "__main__":
     df_lbl = pd.read_csv("label.csv")
     df_reindexed['category'] = df_lbl['Category']
     
-    # get category names as dictionary
-    with open('categories_string.csv', mode = 'r') as infile:
-        reader = csv.reader(infile)
-        classes = { int(rows[1]) : rows[0] for rows in reader }
-
     # train model, show F1 / other scores
-    tf_idf_machine_learning(df_reindexed, classes, True)
+    for ngram in [ 1 , 2 ]:
+        for withPreProcessing in [ True , False ]:
+            build_tf_idf_save(df_reindexed, classes, ngram, withPreProcessing)
 
 
 ### FIN DE SCRIPT ###
