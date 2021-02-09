@@ -1,3 +1,14 @@
+#-------------------------------------------------------------------------------
+# Name:        build_model_saves
+# Purpose:     train and test machine learning models
+# 
+# Author:      @ArnaudGuibert
+#
+# Created:     21/01/2021
+# Copyright:   (c) arnaud guibert 2021
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
 import csv
 import re
 
@@ -156,8 +167,8 @@ if __name__ == "__main__":
     df_reindexed['category'] = df_lbl['Category']
     
     # train model, show F1 / other scores
-    for ngram in [ 1 , 2 ]:
-        for withPreProcessing in [ True , False ]:
+    for ngram in [ 1 ]:
+        for withPreProcessing in [ False ]:
             build_tf_idf_save(df_reindexed, classes, ngram, withPreProcessing)
 
 
