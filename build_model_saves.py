@@ -154,22 +154,23 @@ def build_tf_idf_save(dataframe, classes, ngram, withPreProcessing = False):
 
 
 if __name__ == "__main__":
-    # get category names as dictionary
+    """ get category names as dictionary """
     with open('categories_string.csv', mode = 'r') as infile:
         reader = csv.reader(infile)
         classes = { int(rows[1]) : rows[0] for rows in reader }
 
-    # get text corpus and merge dataframes
+    """ get text corpus and merge dataframes """
     df = pd.read_json('data.json')
     df_reindexed = df.set_index('Id')
 
     df_lbl = pd.read_csv("label.csv")
     df_reindexed['category'] = df_lbl['Category']
     
-    # train model, show F1 / other scores
-    for ngram in [ 1 ]:
-        for withPreProcessing in [ False ]:
-            build_tf_idf_save(df_reindexed, classes, ngram, withPreProcessing)
+    """ train model, show F1 / other scores """
+    ngram = 1 # 1 = standard | 2 = bigrams
+    withPreProcessing = False # True or False (self-explanatory)
+
+    build_tf_idf_save(df_reindexed, classes, ngram, withPreProcessing)
 
 
 ### FIN DE SCRIPT ###
