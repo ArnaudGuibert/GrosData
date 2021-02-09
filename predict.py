@@ -40,7 +40,5 @@ if __name__ == "__main__":
     data = pd.concat( { "description" : X_predict, "job_id" : job_ids } , axis = 1 )
     data.to_csv("in&out/results.csv", index = None)
 
-    print(pd.read_csv("in&out/results.csv"))
-
 
 ### FIN DE SCRIPT ###
