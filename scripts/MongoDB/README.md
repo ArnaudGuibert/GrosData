@@ -29,6 +29,7 @@ You can configure :
 - file names
 - bucket names
 - FIFO URL
+
 To do that, modify variable on first lines of this python file : ```script.py```
 
 ## Start :
