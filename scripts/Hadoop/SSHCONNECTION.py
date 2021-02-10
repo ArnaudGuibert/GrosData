@@ -44,7 +44,7 @@ def ConnectAndRetrieveFile(host,port,user,password,filename):
     
 
 
-"""
-ConnectAndRetrieveFile("localhost",2222,"maria_dev","maria_dev","data.json")
+
+ConnectAndRetrieveFile("localhost",2222,"maria_dev","maria_dev","predict.csv")
 print("THE END")
-"""
+
