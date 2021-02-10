@@ -1,0 +1,11 @@
+collection : resume
+	[
+		{
+			description: "She is ...",
+			job_id: 42
+		},
+		{
+			description: "Donald is ...",
+			job_id: 3
+		}
+	]
