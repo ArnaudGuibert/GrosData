@@ -4,6 +4,7 @@
 - **Python3** and libraries :
   - paramiko
   - boto3
+  - scp
 - VM Hadoop
 
 ## Installation :
