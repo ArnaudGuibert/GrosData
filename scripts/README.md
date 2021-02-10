@@ -26,3 +26,14 @@ description,job_id
 " He focuses on cloud security, identity ...",10
 [...]
 ````
+
+
+## AWS Installation :
+If you want to change FIFO, Buckets ... names, make sure ton re-configure scripts
+- Create **S3 buckets** with default configuration :
+  - ```predict-bucket-big-data-6```
+  - ```results-bucket-big-data-6```
+- Create **FIFO SQS** queues with default configuration :
+  - ```StartPredicting.fifo```
+  - ```SendResults.fifo```
+- Create 1 **EC2 instance** with default configuration
