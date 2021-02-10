@@ -30,7 +30,7 @@ description,job_id
 
 ## AWS Installation :
 If you want to change FIFO, Buckets ... names, make sure ton re-configure scripts
-- Create **S3 buckets** with default configuration :
+- Create **S3 buckets** with default encryption enabled :
   - ```predict-bucket-big-data-6```
   - ```results-bucket-big-data-6```
 - Create **FIFO SQS** queues with default configuration :
