@@ -14,8 +14,8 @@ You can configure :
 - file names
 - bucket names
 - FIFO URL
-To do that, modify variable on first lines these files :
-- script.py
+
+To do that, modify variable on first lines these files : ```script.py```
 
 ## Start :
 ```python script.py```
