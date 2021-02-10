@@ -20,7 +20,7 @@ Score de fairness :
 
 - Dossier in&out : fichiers de données des prédictions 
 - Dossier models : fichier de Sauvegarde du modele entrainé
-- Dossier script : rassemblement des scripts créés
+- Dossier script : rassemblement des scripts créés :
       - Dossier AWS : scripts de traitement à mettre dans l'instance EC2 
       - Dossier Hadoop : scripts lancés depuis la machine utilisateur pour la connection et communication à la VM Hadoop ainsi qu'aux instances AWS
       - Dossier MongoDB : description de la base mongoDB et scripts de sauvegarde des données
