@@ -2,6 +2,8 @@ import sqs_utils
 import bucket_utils
 import csv
 import os
+import json
+import pandas as pd
 from pymongo import MongoClient
 
 results_queue_url = 'https://sqs.us-east-1.amazonaws.com/838549581352/SendResults.fifo'
@@ -41,7 +43,6 @@ def downloadResults(bucket_object_name):
     print("Deleting file '" + bucket_object_name + "' on bucket '" + BUCKET_NAME + "' ...")
     print()
 
-
 def injectResultsInMongo():
     print('Injecting data in MongoDB ...')
     client = MongoClient(MONGO_URL)
@@ -49,7 +50,24 @@ def injectResultsInMongo():
     db = client['BigDataDB']
     collection_resume = db['resume']
 
-    with open('results.csv', newline='', encoding='utf-8') as csvfile:
+    csv = pd.read_csv(FILE_NAME)
+
+    result = csv.to_json(orient="records")
+    parsed = json.loads(result)
+    print("parsed="+str(parsed))
+    collection_resume.insert_many(parsed)
+
+    print("Results injected in MongoDB")
+    print()
+
+def injectResultsInMongoOLD():
+    print('Injecting data in MongoDB ...')
+    client = MongoClient(MONGO_URL)
+    
+    db = client['BigDataDB']
+    collection_resume = db['resume']
+
+    with open(FILE_NAME, newline='', encoding='utf-8') as csvfile:
         #reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         reader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
         for row in reader:
@@ -62,6 +80,7 @@ def injectResultsInMongo():
 
 def removeResultsFile():
     os.remove(FILE_NAME)
+
 
 while(True):
     print('[START]')
