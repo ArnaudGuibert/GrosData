@@ -21,3 +21,6 @@ Score de fairness :
 - Dossier scripts/AWS/models : fichier de Sauvegarde du modele entrainé
 - Dossier scripts/Hadoop : scripts lancés depuis la machine utilisateur pour la connection et communication à la VM Hadoop ainsi qu'aux instances AWS
 - Dossier scripts/MongoDB : description de la base mongoDB et scripts de sauvegarde des données
+
+- Fichier machineLearning/build_model_saves.py : (ré)entraînement et scores de test pour les différents modèles (en jonglant avec les paramètres en fin de script)
+- Fichier machineLearning/predict.py : production du results.csv en fonction du modèle et du predict.py
